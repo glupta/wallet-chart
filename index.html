@@ -331,6 +331,22 @@ function drawLabels() {
 // ── Tooltip ───────────────────────────────────────────────────────────────
 const tip = document.getElementById("tooltip");
 
+// Build the tooltip DOM once; only update text/colors on hover.
+const tipName  = document.createElement("div"); tipName.className = "name";
+const tipCat   = document.createElement("div"); tipCat.className  = "cat";
+const tipScores = document.createElement("div"); tipScores.className = "scores";
+const tipUx    = document.createElement("div"); tipUx.className  = "score-item";
+const tipUxLbl = document.createElement("span"); tipUxLbl.className = "score-label"; tipUxLbl.textContent = "UX";
+const tipUxVal = document.createElement("span"); tipUxVal.className = "score-val";
+tipUx.append(tipUxLbl, tipUxVal);
+const tipSec   = document.createElement("div"); tipSec.className = "score-item";
+const tipSecLbl = document.createElement("span"); tipSecLbl.className = "score-label"; tipSecLbl.textContent = "Security";
+const tipSecVal = document.createElement("span"); tipSecVal.className = "score-val";
+tipSec.append(tipSecLbl, tipSecVal);
+tipScores.append(tipUx, tipSec);
+const tipNote  = document.createElement("div"); tipNote.className = "note";
+tip.append(tipName, tipCat, tipScores, tipNote);
+
 fgC.addEventListener("mousemove", e => {
   const rect = fgC.getBoundingClientRect();
   const scaleX = W / rect.width;
@@ -350,15 +366,17 @@ fgC.addEventListener("mousemove", e => {
     tip.style.left = (e.clientX + 16) + "px";
     tip.style.top  = (e.clientY - 12) + "px";
     const cat = CATEGORIES[closest.cat];
-    tip.innerHTML = `
-      <div class="name">${closest.name}</div>
-      <div class="cat" style="color:${cat.color}">${cat.label}</div>
-      <div class="scores">
-        <div class="score-item"><span class="score-label">UX</span><span class="score-val">${closest.ux}</span></div>
-        <div class="score-item"><span class="score-label">Security</span><span class="score-val">${closest.sec}</span></div>
-      </div>
-      ${closest.note ? `<div class="note">${closest.note}</div>` : ""}
-    `;
+    tipName.textContent = closest.name;
+    tipCat.textContent  = cat.label;
+    tipCat.style.color  = cat.color;
+    tipUxVal.textContent  = closest.ux;
+    tipSecVal.textContent = closest.sec;
+    if (closest.note) {
+      tipNote.textContent = closest.note;
+      tipNote.style.display = "";
+    } else {
+      tipNote.style.display = "none";
+    }
   } else {
     tip.style.display = "none";
   }
