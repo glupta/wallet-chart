@@ -10,11 +10,35 @@ permissions:
   pull-requests: read
 
 jobs:
+  invalidate-review:
+    name: invalidate-review
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Remove review from a superseded tip
+        if: >-
+          github.event.action == 'synchronize' &&
+          contains(github.event.pull_request.labels.*.name, 'policy-reviewed')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr edit "${PR_URL}" --remove-label policy-reviewed
+
   policy:
     name: policy
+    needs: invalidate-review
+    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Require successful review invalidation
+        env:
+          INVALIDATION_RESULT: ${{ needs.invalidate-review.result }}
+        run: test "${INVALIDATION_RESULT}" = success
+
       - name: Check out the proposed change
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
