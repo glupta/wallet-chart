@@ -1,0 +1,17 @@
+version: v1.0
+name: Native delivery
+
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2204
+
+blocks:
+  - name: Native delivery
+    task:
+      jobs:
+        - name: Verify repository contract
+          commands:
+            - checkout
+            - test -z "${SEMAPHORE_GIT_COMMIT_RANGE}" || git diff --check "${SEMAPHORE_GIT_COMMIT_RANGE}"
+            - python3 -c 'from html.parser import HTMLParser; from pathlib import Path; parser = HTMLParser(); parser.feed(Path("index.html").read_text(encoding="utf-8")); parser.close()'
